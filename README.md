@@ -1,8 +1,6 @@
 # n8n Docker Image for Unraid
 
-This repository provides a custom Docker image for [n8n](https://n8n.io/),
-specifically designed for better compatibility with **Unraid** and other
-systems where file permissions on mounted volumes can be problematic.
+This is a fork of [medzin/docker-n8n](https://github.com/medzin/docker-n8n), providing a custom Docker image for [n8n](https://n8n.io/) specifically designed for better compatibility with **Unraid** and other systems where file permissions on mounted volumes can be problematic.
 
 ## Key Features
 
@@ -29,7 +27,7 @@ docker run -d \
   -e UMASK=022 \
   -p 5678:5678 \
   -v /mnt/user/appdata/n8n:/data \
-  medzin/n8n:latest
+  rjkernick/n8n:latest
 ```
 
 ## Environment Variables

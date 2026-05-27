@@ -48,8 +48,10 @@ if [ "$DIR_UID" -eq "$CURRENT_UID" ] && [ "$DIR_GID" -eq "$CURRENT_GID" ]; then
   echo "SUCCESS: Permissions are correct."
 else
   echo "FAILURE: Permissions do not match."
-  # Show logs to debug
   docker logs "$CONTAINER_NAME"
+  docker stop "$CONTAINER_NAME"
+  rm -rf "$TEST_DIR" || true
+  exit 1
 fi
 
 # Cleanup

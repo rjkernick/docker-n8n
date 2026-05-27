@@ -3,7 +3,7 @@ set -e
 
 # Configuration
 N8N_REPO="n8n-io/n8n"
-DOCKER_REPO="medzin/n8n"
+DOCKER_REPO="rjkernick/n8n"
 
 echo "Fetching n8n releases from GitHub..." >&2
 
