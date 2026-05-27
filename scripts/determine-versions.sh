@@ -69,5 +69,12 @@ fi
 
 echo "Versions to build: ${SORTED_BUILD[*]}" >&2
 
+# Write highest stable semver to GITHUB_OUTPUT if available (avoids a redundant API call in build jobs)
+LATEST_STABLE_VERSION=$(echo "$N8N_RELEASES" | sort -V | tail -n 1)
+echo "Latest stable version: $LATEST_STABLE_VERSION" >&2
+if [ -n "${GITHUB_OUTPUT:-}" ]; then
+  echo "latest_version=$LATEST_STABLE_VERSION" >> "$GITHUB_OUTPUT"
+fi
+
 # Output JSON array
 jq --compact-output --null-input '$ARGS.positional' --args "${SORTED_BUILD[@]}"

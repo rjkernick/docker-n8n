@@ -5,9 +5,9 @@ FROM node:${NODE_VERSION}-alpine3.22 AS builder
 ARG N8N_VERSION=stable
 
 RUN apk add --no-cache build-base python3 && \
-    npm install -g n8n@${N8N_VERSION} && \
+    npm install -g --no-fund --no-audit --loglevel=error n8n@${N8N_VERSION} && \
     cd /usr/local/lib/node_modules/n8n && \
-    npm rebuild sqlite3 && \
+    npm rebuild sqlite3 --loglevel=error && \
     rm -rf /root/.npm /tmp/*
 
 FROM node:${NODE_VERSION}-alpine3.22

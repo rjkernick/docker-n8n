@@ -10,16 +10,17 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
+      latest_version: ${{ steps.set-matrix.outputs.latest_version }}
     steps:
       - name: Checkout
         uses: actions/checkout@v6
+        with:
+          sparse-checkout: scripts
 
       - name: Check for new versions
         id: set-matrix
         run: |
-          # Run the script to determine versions to build
           MATRIX_JSON=$(./scripts/determine-versions.sh)
-
           echo "Build matrix: $MATRIX_JSON"
           echo "matrix=$MATRIX_JSON" >> $GITHUB_OUTPUT
 
@@ -55,6 +56,8 @@ jobs:
           build-args: |
             N8N_VERSION=${{ matrix.version }}
           tags: rjkernick/n8n:${{ matrix.version }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
       - name: Run Permission Tests
         run: |
@@ -67,14 +70,7 @@ jobs:
       - name: Check if this version is the latest stable
         id: check_latest
         run: |
-          # Derive latest by highest semver across all stable releases, not GitHub's publish-order 'latest'
-          LATEST_TAG=$(curl -s "https://api.github.com/repos/n8n-io/n8n/releases?per_page=100" \
-            | jq -r '.[] | select(.prerelease==false) | .tag_name | sub("n8n@";"")' \
-            | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$' \
-            | sort -V \
-            | tail -n 1)
-
-          if [ "${{ matrix.version }}" == "$LATEST_TAG" ]; then
+          if [ "${{ matrix.version }}" == "${{ needs.check-versions.outputs.latest_version }}" ]; then
             echo "is_latest=true" >> $GITHUB_OUTPUT
           else
             echo "is_latest=false" >> $GITHUB_OUTPUT
@@ -91,3 +87,5 @@ jobs:
             rjkernick/n8n:${{ matrix.version }}
             ${{ steps.check_latest.outputs.is_latest == 'true' && 'rjkernick/n8n:latest' || '' }}
           platforms: linux/amd64,linux/arm64
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
