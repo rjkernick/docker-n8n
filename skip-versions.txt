@@ -1,0 +1,2 @@
+# Known-broken n8n versions to skip in the build pipeline.
+# One version per line (x.y.z). Text after '#' is ignored.
