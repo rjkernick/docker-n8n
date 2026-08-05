@@ -101,3 +101,10 @@ jobs:
             rjkernick/n8n:${{ matrix.version }}
             ${{ steps.check_latest.outputs.is_latest == 'true' && 'rjkernick/n8n:latest' || '' }}
           platforms: linux/amd64,linux/arm64
+
+      - name: Notify Mattermost on failure
+        if: failure()
+        run: |
+          curl -s -X POST "${{ secrets.MATTERMOST_WEBHOOK_URL }}" \
+            -H "Content-Type: application/json" \
+            -d "{\"text\": \"### :x: n8n build failed\\n**Version:** \`${{ matrix.version }}\`\\n**Run:** ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\"}"
