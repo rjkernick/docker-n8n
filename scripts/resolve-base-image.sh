@@ -36,4 +36,19 @@ if [ -z "$BASE_IMAGE" ]; then
   exit 1
 fi
 
+# The FROM line may reference a build ARG (e.g. `FROM ${DHI_REF}`) instead of
+# a literal image, so resolve it against that ARG's declared default before
+# using it - a bare "${VAR}" isn't a valid image reference on its own.
+if [[ "$BASE_IMAGE" =~ \$\{([A-Za-z_][A-Za-z0-9_]*)\} ]]; then
+  ARG_NAME="${BASH_REMATCH[1]}"
+  ARG_DEFAULT=$(echo "$CONTENT" | grep -m1 -E "^ARG ${ARG_NAME}=" | cut -d= -f2-)
+
+  if [ -z "$ARG_DEFAULT" ]; then
+    echo "FROM line references \${${ARG_NAME}} but no default was found for ARG ${ARG_NAME} in ${BASE_DOCKERFILE} at ${REF}" >&2
+    exit 1
+  fi
+
+  BASE_IMAGE="${BASE_IMAGE//\$\{${ARG_NAME}\}/${ARG_DEFAULT}}"
+fi
+
 echo "$BASE_IMAGE"
