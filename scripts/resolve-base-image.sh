@@ -14,6 +14,7 @@ fi
 
 REPO="n8n-io/n8n"
 BASE_DOCKERFILE="docker/images/n8n-base/Dockerfile"
+BAKE_FILE="docker/docker-bake.hcl"
 REF="n8n@${VERSION}"
 
 echo "Resolving base image for n8n ${VERSION}..." >&2
@@ -43,8 +44,21 @@ if [[ "$BASE_IMAGE" =~ \$\{([A-Za-z_][A-Za-z0-9_]*)\} ]]; then
   ARG_NAME="${BASH_REMATCH[1]}"
   ARG_DEFAULT=$(echo "$CONTENT" | grep -m1 -E "^ARG ${ARG_NAME}=" | cut -d= -f2-)
 
+  # Since n8n 2.49 the Dockerfiles carry no defaults: every base image pin
+  # lives in docker-bake.hcl as `variable "NAME" { default = "..." }`.
   if [ -z "$ARG_DEFAULT" ]; then
-    echo "FROM line references \${${ARG_NAME}} but no default was found for ARG ${ARG_NAME} in ${BASE_DOCKERFILE} at ${REF}" >&2
+    BAKE=$(curl -sf "https://raw.githubusercontent.com/${REPO}/${REF}/${BAKE_FILE}" || true)
+    ARG_DEFAULT=$(echo "$BAKE" \
+      | awk -v name="$ARG_NAME" '
+          $1 == "variable" && $2 == "\"" name "\"" { found = 1 }
+          found && match($0, /default *= *"[^"]+"/) {
+            s = substr($0, RSTART, RLENGTH); sub(/^default *= *"/, "", s); sub(/"$/, "", s)
+            print s; exit
+          }')
+  fi
+
+  if [ -z "$ARG_DEFAULT" ]; then
+    echo "FROM line references \${${ARG_NAME}} but no default was found for ARG ${ARG_NAME} in ${BASE_DOCKERFILE} or ${BAKE_FILE} at ${REF}" >&2
     exit 1
   fi
 

@@ -6,9 +6,9 @@ ARG N8N_VERSION=latest
 
 # apk should come from the SAME base n8n builds on so its version matches the
 # package DB and repositories left in the official image. Keep this in sync with
-# the FROM line in n8n's docker/images/n8n-base/Dockerfile (CI resolves it per
-# version via scripts/resolve-base-image.sh; this default is for local builds).
-ARG N8N_BASE_IMAGE=dhi.io/node:24.22.1-alpine3.24-dev
+# DHI_REF in n8n's docker/docker-bake.hcl (CI resolves it per version via
+# scripts/resolve-base-image.sh; this default is for local builds).
+ARG N8N_BASE_IMAGE=dhi.io/node:26.13.0-alpine3.24-dev
 
 # Source stage: only used to provide the apk binary the official image strips
 # out. We take the statically linked apk.static rather than /sbin/apk: since
